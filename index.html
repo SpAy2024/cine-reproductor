@@ -65,6 +65,30 @@
   .jw-buffer {
     background-color: rgba(255, 0, 0, 0.4) !important;
   }
+/* Forzar color rojo al ícono play */
+.jw-icon-playback .jw-svg-icon-play {
+  fill: red !important;
+  color: red !important;
+}
+
+/* Forzar color rojo al ícono pause */
+.jw-icon-playback .jw-svg-icon-pause {
+  fill: red !important;
+  color: red !important;
+}
+
+/* Botón play/pause en estado hover */
+.jw-icon-playback:hover .jw-svg-icon-play,
+.jw-icon-playback:hover .jw-svg-icon-pause {
+  fill: #ff0000 !important;
+  color: #ff0000 !important;
+}
+
+/* Cambiar otros iconos (volumen, fullscreen) a rojo */
+.jw-icon-volume, .jw-icon-fullscreen {
+  fill: red !important;
+  color: red !important;
+}
 
 
     
