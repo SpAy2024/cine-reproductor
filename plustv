@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta charset="UTF-8"/>
+  <title>CineMax-Video-Streaming</title>
+  <meta name="robots" content="noindex" />
+  <meta name="googlebot" content="noindex" />
+  <meta name="referrer" content="never" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+
+  <link href="https://cdn.rawgit.com/ufilestorage/a/master/skins/jw-logo-bar.css" rel="stylesheet" />
+  <link href="https://cdn.jsdelivr.net/gh/CineMax-app/html/jwplayerplay.css" rel="stylesheet" />
+  <script src="https://cdn.rawgit.com/ufilestorage/a/master/jquery-2.2.3.min.js"></script>
+  <script src="https://ssl.p.jwpcdn.com/player/v/8.13.0/jwplayer.js"></script>
+  <script>jwplayer.key="64HPbvSQorQcd52B8XFuhMtEoitbvY/EXJmMBfKcXZQU2Rnn";</script>
+
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100%;
+      background-color: #000;
+    }
+    #uplay_player {
+      width: 100% !important;
+      height: 100% !important;
+    }
+    #fullscreenBtn {
+      position: absolute;
+      bottom: 20px;
+      right: 20px;
+      z-index: 1000;
+      padding: 10px 15px;
+      background-color: rgba(0,0,0,0.7);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <div id="uplay_player"></div>
+  <button id="fullscreenBtn" onclick="enterFullscreen()">Pantalla completa</button>
+
+  <script>
+    function getUrlParam(name) {
+      const urlParams = new URLSearchParams(window.location.search);
+      return urlParams.get(name);
+    }
+
+    const videoId = getUrlParam('v');
+    if (videoId) {
+      const apiUrl = `https://corsproxy.io/?url=https://player-00.live/api/static-stream/${videoId}`;
+      fetch(apiUrl)
+        .then(response => response.json())
+        .then(data => {
+          const videoUrl = "https://player-00.live" + data.sources[0].file;
+
+          var player = jwplayer("uplay_player");
+          player.setup({
+            file: videoUrl,
+            type: "hls",
+            width: "100vh",
+            height: "100vw",
+            stretching: "fill",
+            controls: true,
+            displaytitle: false,
+            fullscreen: true,
+            primary: "html5",
+            autostart: false,
+            image: "",
+            advertising: { client: "vast", tag: "" },
+            logo: {
+              file: "https://i.ibb.co/SVQ82Cm/20240929-154245.png",
+              logoBar: "https://i.ibb.co/SVQ82Cm/20240929-154245.png",
+              position: "top-left",
+              link: ""
+            },
+            aboutlink: "",
+            abouttext: "",
+            sharing: {}
+          });
+
+          player.on("ready", function () {
+            jwLogoBar.addLogo(player);
+          });
+
+          player.on("play", function () {
+            var container = player.getContainer();
+            if (container) {
+              tryFullscreen(container);
+            } else {
+              document.getElementById("fullscreenBtn").style.display = "block";
+            }
+          });
+
+        })
+        .catch(error => {
+          console.error("Error al obtener el video:", error);
+          document.body.innerHTML = "<h3 style='color:red;text-align:center;padding:20px;'>No se pudo cargar el video.</h3>";
+        });
+    } else {
+      document.body.innerHTML = "<h3 style='color:red;text-align:center;padding:20px;'>Falta el parámetro ?v= en la URL</h3>";
+    }
+
+    function enterFullscreen() {
+      var container = jwplayer().getContainer();
+      tryFullscreen(container);
+    }
+
+    function tryFullscreen(container) {
+      try {
+        if (container.requestFullscreen) {
+          container.requestFullscreen().then(lockOrientationLandscape);
+        } else if (container.mozRequestFullScreen) {
+          container.mozRequestFullScreen();
+          lockOrientationLandscape();
+        } else if (container.webkitRequestFullscreen) {
+          container.webkitRequestFullscreen();
+          lockOrientationLandscape();
+        } else if (container.msRequestFullscreen) {
+          container.msRequestFullscreen();
+          lockOrientationLandscape();
+        } else {
+          document.getElementById("fullscreenBtn").style.display = "block";
+        }
+      } catch (err) {
+        console.error("Error al activar pantalla completa:", err);
+        document.getElementById("fullscreenBtn").style.display = "block";
+      }
+    }
+
+    function lockOrientationLandscape() {
+      if (screen.orientation && screen.orientation.lock) {
+        screen.orientation.lock("landscape").catch(function(error) {
+          console.warn("No se pudo bloquear la orientación:", error);
+        });
+      }
+    }
+  </script>
+</body>
+</html>
