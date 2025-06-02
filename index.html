@@ -29,13 +29,13 @@
     }
 
     const videoId = getParam('v');
-    const baseUrl = 'https://tu-servidor.com/videos/'; // CAMBIA ESTO al dominio real donde están tus videos
+    const baseUrl = 'https://streamhg.com/?op=my_files'; // CAMBIA ESTO al dominio real donde están tus videos
 
     if (videoId) {
       const sources = [
-        { file: `${baseUrl}${videoId}_R1080p.m3u8`, label: "1080p", type: "hls" },
-        { file: `${baseUrl}${videoId}_R720p.m3u8`,  label: "720p",  type: "hls", default: true },
-        { file: `${baseUrl}${videoId}_R480p.m3u8`,  label: "480p",  type: "hls" }
+        { file: `${baseUrl}${videoId}_R1080p.mp4`, label: "1080p", type: "hls" },
+        { file: `${baseUrl}${videoId}_R720p.mp4`,  label: "720p",  type: "hls", default: true },
+        { file: `${baseUrl}${videoId}_R480p.mp4`,  label: "480p",  type: "hls" }
       ];
 
       jwplayer("player").setup({
