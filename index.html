@@ -40,9 +40,6 @@
       cursor: pointer;
       display: none;
     }
-
-
-    
   </style>
 </head>
 <body>
@@ -55,59 +52,90 @@
       return urlParams.get(name);
     }
 
-    const videoId = getUrlParam('v');
-    if (videoId) {
-      const apiUrl = `https://corsproxy.io/?url=https://player-00.live/api/static-stream/${videoId}`;
-      fetch(apiUrl)
-        .then(response => response.json())
-        .then(data => {
-          const videoUrl = "https://player-00.live" + data.sources[0].file;
+    const provider = getUrlParam('p'); // proveedor (voe, vetto, etc.)
+    const videoId = getUrlParam('v');  // ID del video
 
-          var player = jwplayer("uplay_player");
-          player.setup({
-            file: videoUrl,
-            type: "hls",
-            width: "100vh",
-            height: "100vw",
-            stretching: "fill",
-            controls: true,
-            displaytitle: false,
-            fullscreen: true,
-            primary: "html5",
-            autostart: false,
-            image: "",
-            advertising: { client: "vast", tag: "" },
-            logo: {
-              file: "https://i.postimg.cc/MKk58Wn4/splash.png",
-              logoBar: "https://i.postimg.cc/MKk58Wn4/splash.png",
-              position: "top-left",
-              link: ""
-            },
-            aboutlink: "",
-            abouttext: "",
-            sharing: {}
-          });
-
-          player.on("ready", function () {
-            jwLogoBar.addLogo(player);
-          });
-
-          player.on("play", function () {
-            var container = player.getContainer();
-            if (container) {
-              tryFullscreen(container);
-            } else {
-              document.getElementById("fullscreenBtn").style.display = "block";
-            }
-          });
-
-        })
-        .catch(error => {
-          console.error("Error al obtener el video:", error);
-          document.body.innerHTML = "<h3 style='color:red;text-align:center;padding:20px;'>No se pudo cargar el video.</h3>";
-        });
+    if (!provider || !videoId) {
+      document.body.innerHTML = "<h3 style='color:red;text-align:center;padding:20px;'>Faltan parámetros ?p= y/o ?v= en la URL</h3>";
     } else {
-      document.body.innerHTML = "<h3 style='color:red;text-align:center;padding:20px;'>Falta el parámetro ?v= en la URL</h3>";
+      let videoUrl = "";
+
+      switch (provider.toLowerCase()) {
+        case "voe":
+          videoUrl = `https://voe.sx/${videoId}`;
+          break;
+        case "lulustream":
+          videoUrl = `https://lulustream.com/e/${videoId}`;
+          break;
+        case "supervideo":
+          videoUrl = `https://supervideo.tv/e/${videoId}`;
+          break;
+        case "earvid":
+          videoUrl = `https://earvid.com/e/${videoId}`;
+          break;
+        case "vetto":
+          videoUrl = `https://vetto.tv/e/${videoId}`;
+          break;
+        case "streamhg":
+          const apiUrl = `https://corsproxy.io/?url=https://player-00.live/api/static-stream/${videoId}`;
+          fetch(apiUrl)
+            .then(response => response.json())
+            .then(data => {
+              setupPlayer("https://player-00.live" + data.sources[0].file);
+            })
+            .catch(error => {
+              console.error("Error al obtener el video:", error);
+              document.body.innerHTML = "<h3 style='color:red;text-align:center;padding:20px;'>No se pudo cargar el video.</h3>";
+            });
+          return;
+        default:
+          document.body.innerHTML = "<h3 style='color:red;text-align:center;padding:20px;'>Proveedor no soportado: " + provider + "</h3>";
+          return;
+      }
+
+      setupPlayer(videoUrl);
+    }
+
+    function setupPlayer(videoUrl) {
+      const player = jwplayer("uplay_player");
+      player.setup({
+        file: videoUrl,
+        type: "hls",
+        width: "100%",
+        height: "100%",
+        stretching: "fill",
+        controls: true,
+        displaytitle: false,
+        fullscreen: true,
+        primary: "html5",
+        autostart: false,
+        image: "",
+        advertising: { client: "vast", tag: "" },
+        logo: {
+          file: "https://i.ibb.co/SVQ82Cm/20240929-154245.png",
+          logoBar: "https://i.ibb.co/SVQ82Cm/20240929-154245.png",
+          position: "top-left",
+          link: ""
+        },
+        aboutlink: "",
+        abouttext: "",
+        sharing: {}
+      });
+
+      player.on("ready", function () {
+        if (typeof jwLogoBar !== "undefined") {
+          jwLogoBar.addLogo(player);
+        }
+      });
+
+      player.on("play", function () {
+        var container = player.getContainer();
+        if (container) {
+          tryFullscreen(container);
+        } else {
+          document.getElementById("fullscreenBtn").style.display = "block";
+        }
+      });
     }
 
     function enterFullscreen() {
@@ -139,7 +167,7 @@
 
     function lockOrientationLandscape() {
       if (screen.orientation && screen.orientation.lock) {
-        screen.orientation.lock("landscape").catch(function(error) {
+        screen.orientation.lock("landscape").catch(function (error) {
           console.warn("No se pudo bloquear la orientación:", error);
         });
       }
@@ -147,4 +175,5 @@
   </script>
 </body>
 </html>
+
 
