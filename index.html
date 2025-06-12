@@ -77,7 +77,11 @@
         .then(response => response.json())
         .then(data => {
           const videoUrl = "https://player-00.live" + data.sources[0].file;
+          const movieName = data.title || "Película"; // Usa el nombre del título si lo trae
+          // Establece el texto
+           document.getElementById("movieTitle").innerText = movieName;
 
+          
           var player = jwplayer("uplay_player");
           player.setup({
             file: videoUrl,
@@ -105,6 +109,14 @@
           });
 
           player.on("play", function () {
+
+      document.getElementById("movieTitle").style.display = "block";
+
+  // Oculta el título después de 5 segundos (opcional)
+  setTimeout(() => {
+    document.getElementById("movieTitle").style.display = "none";
+  }, 5000);
+            
             var container = player.getContainer();
             if (container) {
               tryFullscreen(container);
