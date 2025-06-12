@@ -77,9 +77,7 @@
         .then(response => response.json())
         .then(data => {
           const videoUrl = "https://player-00.live" + data.sources[0].file;
-          const movieName = data.title || "Película"; // Usa el nombre del título si lo trae
-          // Establece el texto
-           document.getElementById("movieTitle").innerText = movieName;
+          
 
           
           var player = jwplayer("uplay_player");
@@ -103,7 +101,11 @@
             abouttext: "",
             sharing: {}
           });
-
+          
+           player.on("ready", function () {
+            jwLogoBar.addLogo(player);
+          });
+          
           player.on("play", function () {
             var container = player.getContainer();
             if (container) {
