@@ -104,17 +104,15 @@
             sharing: {}
           });
 
-          player.on("ready", function () {
-            jwLogoBar.addLogo(player);
+          player.on("play", function () {
+            var container = player.getContainer();
+            if (container) {
+              tryFullscreen(container);
+            } else {
+              document.getElementById("fullscreenBtn").style.display = "block";
+            }
           });
 
-         player.on("play", function () {
-  document.getElementById("movieTitle").style.display = "block";
-
-  // Oculta el título después de 5 segundos (opcional)
-  setTimeout(() => {
-    document.getElementById("movieTitle").style.display = "none";
-  }, 5000);
 });
 
         })
