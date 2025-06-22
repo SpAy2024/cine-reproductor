@@ -52,7 +52,6 @@
       background-color: red !important;
     }
 
-    /* Spinner de carga */
     #loadingSpinner {
       position: fixed;
       top: 0;
@@ -82,7 +81,6 @@
       100% { transform: rotate(360deg); }
     }
 
-    /* Barra de buffering */
     #bufferBar {
       position: fixed;
       bottom: 0;
@@ -94,7 +92,6 @@
       z-index: 9999;
     }
 
-    /* Mensaje de conexión lenta */
     #slowConnection {
       color: red;
       text-align: center;
@@ -105,23 +102,44 @@
       display: none;
       font-weight: bold;
     }
+
+    #networkSpeed {
+      position: fixed;
+      bottom: 60px;
+      right: 20px;
+      background-color: rgba(0,0,0,0.6);
+      color: white;
+      padding: 8px 12px;
+      border-radius: 6px;
+      font-size: 14px;
+      z-index: 1000;
+      display: none;
+      font-weight: bold;
+    }
+
+    #networkSpeed.green {
+      border-left: 5px solid limegreen;
+    }
+
+    #networkSpeed.yellow {
+      border-left: 5px solid orange;
+    }
+
+    #networkSpeed.red {
+      border-left: 5px solid red;
+    }
   </style>
 </head>
 <body>
-  <!-- Spinner -->
   <div id="loadingSpinner">
     <div class="spinner"></div>
     <p style="color: white;">Cargando video...</p>
   </div>
 
-  <!-- Mensaje conexión lenta -->
   <div id="slowConnection">⚠ Conexión lenta...</div>
-
-  <!-- Reproductor -->
+  <div id="networkSpeed">Velocidad: -- Kb/s</div>
   <div id="uplay_player" style="display:none;"></div>
   <button id="fullscreenBtn" onclick="enterFullscreen()">Pantalla completa</button>
-
-  <!-- Barra buffering -->
   <div id="bufferBar"></div>
 
   <script>
@@ -141,8 +159,8 @@
           }
 
           const videoUrl = "https://player-00.live" + data.sources[0].file;
-
           const player = jwplayer("uplay_player");
+
           player.setup({
             file: videoUrl,
             type: "hls",
@@ -164,6 +182,8 @@
           });
 
           let bufferTimeout;
+          let lastPosition = 0;
+          let lastTime = Date.now();
 
           player.on("ready", function () {
             document.getElementById("loadingSpinner").style.display = "none";
@@ -174,7 +194,6 @@
           player.on("buffer", function () {
             document.getElementById("bufferBar").style.display = "block";
 
-            // Si se tarda más de 5 segundos en buffer, mostrar aviso
             bufferTimeout = setTimeout(() => {
               document.getElementById("slowConnection").style.display = "block";
             }, 5000);
@@ -191,6 +210,32 @@
             } else {
               document.getElementById("fullscreenBtn").style.display = "block";
             }
+          });
+
+          player.on("time", function (e) {
+            const now = Date.now();
+            const secondsElapsed = (now - lastTime) / 1000;
+            const positionDiff = e.position - lastPosition;
+
+            if (positionDiff > 0 && secondsElapsed > 0) {
+              const kbps = ((positionDiff * 1024 * 8) / secondsElapsed).toFixed(0);
+              const indicator = document.getElementById("networkSpeed");
+              indicator.textContent = `Velocidad: ${kbps} Kb/s`;
+              indicator.style.display = "block";
+
+              indicator.classList.remove("green", "yellow", "red");
+
+              if (kbps >= 1500) {
+                indicator.classList.add("green");
+              } else if (kbps >= 800) {
+                indicator.classList.add("yellow");
+              } else {
+                indicator.classList.add("red");
+              }
+            }
+
+            lastPosition = e.position;
+            lastTime = now;
           });
 
         })
