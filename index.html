@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html xmlns="http://www.w3.org/1999/xhtml">
+<html lang="es" xmlns="http://www.w3.org/1999/xhtml">
 <head>
   <meta charset="UTF-8"/>
   <title>CineMax-Video-Streaming</title>
@@ -23,10 +23,12 @@
       height: 100%;
       background-color: #000;
     }
+
     #uplay_player {
       width: 100% !important;
       height: 100% !important;
     }
+
     #fullscreenBtn {
       position: absolute;
       bottom: 20px;
@@ -40,29 +42,87 @@
       cursor: pointer;
       display: none;
     }
-/* Cambia el color del botón Play a rojo */
-  .jw-icon-playback.jw-off .jw-svg-icon {
-    fill: red !important;
-  }
 
-  /* Cambia el color del botón de pausa a rojo */
-  .jw-icon-playback.jw-button-color {
-    fill: red !important;
-  }
+    .jw-icon-playback.jw-off .jw-svg-icon,
+    .jw-icon-playback.jw-button-color {
+      fill: red !important;
+    }
 
-  /* Barra de progreso */
-  .jw-progress, .jw-knob {
-    background-color: red !important;
-  }
+    .jw-progress, .jw-knob {
+      background-color: red !important;
+    }
 
- 
+    /* Spinner de carga */
+    #loadingSpinner {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: #000;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
+      z-index: 9999;
+    }
 
-    
+    .spinner {
+      border: 8px solid rgba(255, 255, 255, 0.2);
+      border-top: 8px solid red;
+      border-radius: 50%;
+      width: 60px;
+      height: 60px;
+      animation: spin 1s linear infinite;
+      margin-bottom: 10px;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    /* Barra de buffering */
+    #bufferBar {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      height: 5px;
+      width: 100%;
+      background-color: red;
+      display: none;
+      z-index: 9999;
+    }
+
+    /* Mensaje de conexión lenta */
+    #slowConnection {
+      color: red;
+      text-align: center;
+      position: fixed;
+      top: 20px;
+      width: 100%;
+      z-index: 9999;
+      display: none;
+      font-weight: bold;
+    }
   </style>
 </head>
 <body>
-  <div id="uplay_player"></div>
+  <!-- Spinner -->
+  <div id="loadingSpinner">
+    <div class="spinner"></div>
+    <p style="color: white;">Cargando video...</p>
+  </div>
+
+  <!-- Mensaje conexión lenta -->
+  <div id="slowConnection">⚠ Conexión lenta...</div>
+
+  <!-- Reproductor -->
+  <div id="uplay_player" style="display:none;"></div>
   <button id="fullscreenBtn" onclick="enterFullscreen()">Pantalla completa</button>
+
+  <!-- Barra buffering -->
+  <div id="bufferBar"></div>
 
   <script>
     function getUrlParam(name) {
@@ -76,11 +136,13 @@
       fetch(apiUrl)
         .then(response => response.json())
         .then(data => {
-          const videoUrl = "https://player-00.live" + data.sources[0].file;
-          
+          if (!data.sources || !data.sources[0] || !data.sources[0].file) {
+            throw new Error("Fuente de video no encontrada.");
+          }
 
-          
-          var player = jwplayer("uplay_player");
+          const videoUrl = "https://player-00.live" + data.sources[0].file;
+
+          const player = jwplayer("uplay_player");
           player.setup({
             file: videoUrl,
             type: "hls",
@@ -95,20 +157,35 @@
             mute: false,
             image: "",
             advertising: { client: "vast", tag: "" },
-            logo: {
-              
-            },
+            logo: {},
             aboutlink: "",
             abouttext: "",
             sharing: {}
           });
-          
-           player.on("ready", function () {
+
+          let bufferTimeout;
+
+          player.on("ready", function () {
+            document.getElementById("loadingSpinner").style.display = "none";
+            document.getElementById("uplay_player").style.display = "block";
             jwLogoBar.addLogo(player);
           });
-          
+
+          player.on("buffer", function () {
+            document.getElementById("bufferBar").style.display = "block";
+
+            // Si se tarda más de 5 segundos en buffer, mostrar aviso
+            bufferTimeout = setTimeout(() => {
+              document.getElementById("slowConnection").style.display = "block";
+            }, 5000);
+          });
+
           player.on("play", function () {
-            var container = player.getContainer();
+            document.getElementById("bufferBar").style.display = "none";
+            document.getElementById("slowConnection").style.display = "none";
+            clearTimeout(bufferTimeout);
+
+            const container = player.getContainer();
             if (container) {
               tryFullscreen(container);
             } else {
@@ -119,14 +196,15 @@
         })
         .catch(error => {
           console.error("Error al obtener el video:", error);
-          document.body.innerHTML = "<h3 style='color:red;text-align:center;padding:20px;'>No se pudo cargar el video.</h3>";
+          document.getElementById("loadingSpinner").innerHTML =
+            "<h3 style='color:red;text-align:center;padding:20px;'>No se pudo cargar el video.</h3>";
         });
     } else {
       document.body.innerHTML = "<h3 style='color:red;text-align:center;padding:20px;'>Falta el parámetro ?v= en la URL</h3>";
     }
 
     function enterFullscreen() {
-      var container = jwplayer().getContainer();
+      const container = jwplayer().getContainer();
       tryFullscreen(container);
     }
 
