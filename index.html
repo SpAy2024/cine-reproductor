@@ -212,31 +212,48 @@
             }
           });
 
-          player.on("time", function (e) {
-            const now = Date.now();
-            const secondsElapsed = (now - lastTime) / 1000;
-            const positionDiff = e.position - lastPosition;
+          let lastPosition = 0;
+let lastTime = Date.now();
+let speedTimeout;
 
-            if (positionDiff > 0 && secondsElapsed > 0) {
-              const kbps = ((positionDiff * 1024 * 8) / secondsElapsed).toFixed(0);
-              const indicator = document.getElementById("networkSpeed");
-              indicator.textContent = `Velocidad: ${kbps} Kb/s`;
-              indicator.style.display = "block";
+player.on("time", function (e) {
+  const now = Date.now();
+  const secondsElapsed = (now - lastTime) / 1000;
+  const positionDiff = e.position - lastPosition;
 
-              indicator.classList.remove("green", "yellow", "red");
+  if (positionDiff > 0 && secondsElapsed > 0) {
+    const kbps = ((positionDiff * 1024 * 8) / secondsElapsed).toFixed(0);
+    const indicator = document.getElementById("networkSpeed");
+    indicator.textContent = `Velocidad: ${kbps} Kb/s`;
+    indicator.style.display = "block";
 
-              if (kbps >= 1500) {
-                indicator.classList.add("green");
-              } else if (kbps >= 800) {
-                indicator.classList.add("yellow");
-              } else {
-                indicator.classList.add("red");
-              }
-            }
+    indicator.classList.remove("green", "yellow", "red");
 
-            lastPosition = e.position;
-            lastTime = now;
-          });
+    if (kbps >= 1500) {
+      indicator.classList.add("green");
+    } else if (kbps >= 800) {
+      indicator.classList.add("yellow");
+    } else {
+      indicator.classList.add("red");
+    }
+
+    // Cancelar timeout anterior
+    clearTimeout(speedTimeout);
+
+    if (kbps < 800) {
+      // Si la red es mala, mostrar aviso y dejarlo visible
+      indicator.textContent += " ⚠ Señal débil o conexión lenta";
+    } else {
+      // Si la red es buena o media, ocultar después de 5 segundos
+      speedTimeout = setTimeout(() => {
+        indicator.style.display = "none";
+      }, 5000);
+    }
+  }
+
+  lastPosition = e.position;
+  lastTime = now;
+});
 
         })
         .catch(error => {
