@@ -137,7 +137,7 @@
   </div>
 
   <div id="slowConnection">⚠ Conexión lenta...</div>
-  <div id="networkSpeed">Velocidad: -- Kb/s</div>
+  <div id="networkSpeed">-- Kb/s</div>
   <div id="uplay_player" style="display:none;"></div>
   <button id="fullscreenBtn" onclick="enterFullscreen()">Pantalla completa</button>
   <div id="bufferBar"></div>
@@ -222,7 +222,7 @@ player.on("time", function (e) {
   if (positionDiff > 0 && secondsElapsed > 0) {
     const kbps = ((positionDiff * 1024 * 8) / secondsElapsed).toFixed(0);
     const indicator = document.getElementById("networkSpeed");
-    indicator.textContent = `Velocidad: ${kbps} Kb/s`;
+    indicator.textContent = `${kbps} Kb/s`;
     indicator.style.display = "block";
 
     indicator.classList.remove("green", "yellow", "red");
