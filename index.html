@@ -160,7 +160,8 @@
             throw new Error("Fuente de video no encontrada.");
           }
 
-          const videoUrl = "https://player-00.live" + data.sources[0].file;
+          const videoUrl = data.sources[0].file;
+
           const player = jwplayer("uplay_player");
 
           player.setup({
