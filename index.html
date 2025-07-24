@@ -150,9 +150,7 @@
 
     const videoId = getUrlParam('v');
     if (videoId) {
-      
-      const apiUrl = `https://stream-api-f1fa.onrender.com/api/static-stream/${videoId}`;
-
+      const apiUrl = `https://corsproxy.io/?url=https://player-00.live/api/static-stream/${videoId}`;
       fetch(apiUrl)
         .then(response => response.json())
         .then(data => {
@@ -160,8 +158,7 @@
             throw new Error("Fuente de video no encontrada.");
           }
 
-          const videoUrl = data.sources[0].file;
-
+          const videoUrl = "https://player-00.live" + data.sources[0].file;
           const player = jwplayer("uplay_player");
 
           player.setup({
@@ -303,4 +300,3 @@ player.on("time", function (e) {
   </script>
 </body>
 </html>
-
